@@ -1,43 +1,37 @@
 # hakkasuru-skills
 
-This is a personal Claude Code plugin and skills repository.
+Personal Claude Code skills marketplace. Each subdirectory under `plugins/` is a self-contained plugin.
 
 ## Structure
 
 ```
 hakkasuru-skills/
-├── .claude-plugin/
-│   └── plugin.json     # Plugin metadata
-├── skills/
-│   └── <skill-name>/
-│       └── SKILL.md    # Skill instructions and trigger conditions
+├── plugins/
+│   └── <plugin-name>/
+│       ├── .claude-plugin/
+│       │   └── plugin.json     # Plugin metadata
+│       └── skills/
+│           └── <skill-name>/
+│               └── SKILL.md    # Skill instructions and trigger conditions
 └── CLAUDE.md
 ```
 
-## Adding Skills
+## Adding a Plugin
 
-Create a new directory under `skills/` with a `SKILL.md` file:
-
-```
-skills/
-  my-skill/
-    SKILL.md
-```
+Create a directory under `plugins/` with a `.claude-plugin/plugin.json` and a `skills/` directory.
 
 Each `SKILL.md` requires YAML frontmatter:
 
 ```yaml
 ---
-name: my-skill
+name: skill-name
 description: When to trigger this skill and what it does
 ---
 ```
 
 ## Installation
 
-The parent directory must be registered as a marketplace, then install this plugin:
-
 ```bash
-claude plugin marketplace add /Users/anderssoh/Workspace --scope user
-claude plugin install hakkasuru-skills@Workspace
+claude plugin marketplace add https://github.com/anderssoh/hakkasuru-skills --scope user
+claude plugin install <plugin-name>@hakkasuru-skills
 ```
