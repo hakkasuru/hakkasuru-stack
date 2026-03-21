@@ -48,7 +48,7 @@ hakkasuru-skills/
 ## Installation
 
 ```bash
-claude plugin marketplace add anderssoh/hakkasuru-skills --scope user
+claude plugin marketplace add <github-username>/hakkasuru-skills --scope user
 claude plugin install <plugin-name>@hakkasuru-skills
 ```
 
