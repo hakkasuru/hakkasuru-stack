@@ -56,6 +56,12 @@ Move beyond celebrating numbers. Reveal the systemic change or pattern behind th
 
 ## Instructions
 
+Before writing, ask the user for:
+- The specific facts, numbers, or outcomes behind the topic (e.g. exact attendance, results, timeframes)
+- Any real quotes, anecdotes, or moments worth building around
+
+Do NOT invent statistics, outcomes, or details. Only use facts the user provides.
+
 Given a topic, draft post, or achievement to share:
 
 1. Identify which framework(s) fit best
