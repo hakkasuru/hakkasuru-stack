@@ -7,5 +7,11 @@
     "description": "Personal Claude Code skills marketplace",
     "pluginRoot": "./plugins"
   },
-  "plugins": []
+  "plugins": [
+    {
+      "name": "personal-brand",
+      "source": "personal-brand",
+      "description": "Personal branding skills for content creation"
+    }
+  ]
 }
