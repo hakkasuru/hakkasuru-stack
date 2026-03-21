@@ -39,11 +39,10 @@ hakkasuru-skills/
    ```json
    {
      "name": "plugin-name",
-     "source": "plugin-name",
+     "source": "./plugins/plugin-name",
      "description": "What this plugin does"
    }
    ```
-   Note: `source` is relative to `pluginRoot` (`./plugins`), so just the plugin directory name.
 
 ## Installation
 

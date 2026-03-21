@@ -4,13 +4,12 @@
     "name": "anderssoh"
   },
   "metadata": {
-    "description": "Personal Claude Code skills marketplace",
-    "pluginRoot": "./plugins"
+    "description": "Personal Claude Code skills marketplace"
   },
   "plugins": [
     {
       "name": "personal-brand",
-      "source": "personal-brand",
+      "source": "./plugins/personal-brand",
       "description": "Personal branding skills for content creation"
     }
   ]
