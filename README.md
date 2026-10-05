@@ -1,4 +1,4 @@
-# hakkasuru-skills
+# hakkasuru-stack
 
 Personal Claude Code skills marketplace.
 
@@ -7,13 +7,13 @@ Personal Claude Code skills marketplace.
 ### 1. Add the marketplace
 
 ```bash
-claude plugin marketplace add hakkasuru/hakkasuru-skills --scope user
+claude plugin marketplace add hakkasuru/hakkasuru-stack --scope user
 ```
 
 ### 2. Install a plugin
 
 ```bash
-claude plugin install <plugin-name>@hakkasuru-skills
+claude plugin install <plugin-name>@hakkasuru-stack
 ```
 
 ### 3. Verify installation

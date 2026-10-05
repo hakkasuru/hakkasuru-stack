@@ -1,11 +1,11 @@
-# hakkasuru-skills
+# hakkasuru-stack
 
 Personal Claude Code skills marketplace. Each subdirectory under `plugins/` is a self-contained plugin.
 
 ## Structure
 
 ```
-hakkasuru-skills/
+hakkasuru-stack/
 ├── .claude-plugin/
 │   └── marketplace.json    # Marketplace manifest
 ├── plugins/
@@ -47,8 +47,8 @@ hakkasuru-skills/
 ## Installation
 
 ```bash
-claude plugin marketplace add hakkasuru/hakkasuru-skills --scope user
-claude plugin install <plugin-name>@hakkasuru-skills
+claude plugin marketplace add hakkasuru/hakkasuru-stack --scope user
+claude plugin install <plugin-name>@hakkasuru-stack
 ```
 
 ## Validation
