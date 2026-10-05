@@ -1,4 +1,8 @@
 {
   "name": "personal-brand",
-  "description": "Personal branding skills for content creation"
+  "description": "Personal branding skills for content creation",
+  "version": "1.0.0",
+  "author": {
+    "name": "hakkasuru"
+  }
 }
