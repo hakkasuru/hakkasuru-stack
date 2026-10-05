@@ -39,9 +39,30 @@ Each feature file starts with an H1 title and one paragraph describing the user-
 3. `Driving it with <harness>` starts with `Preconditions:` and uses labeled bullets that pair each user action with an exact command and observable result.
 4. `Gotchas` lists traps that can waste or invalidate a verification run.
 
-Keep implementation details out of the map. Name only user paths, stable handles, required state, commands, and observable proof.
+Keep implementation details out of the map. Name only user paths, stable handles, required state, commands, and observable proof. Source paths appear only in `Not yet mapped`.
+
+The README ends with `Not yet mapped`, which holds the rest of the inventory.
+
+- It names its inventory sources and the date they were last checked.
+- It has one row per user-facing area without a feature file: area, route or source path, partial coverage in other feature files, and notes for the future file.
+- When a feature file is created, its row moves to `Features`.
+- When the inventory sources reveal a new surface, it gets a row with its source path.
+- An area deliberately kept inside another feature file, such as a destructive step driven only within a larger flow, gets a sentence naming its host file instead of a row.
+- An unmapped area is reported as unmapped, never as verified.
 
 ## Features
 
 - [Create a note](./create-note.md) covers browser and CLI creation, cancellation, persistence, and cleanup.
 - [Search notes](./search.md) covers toolbar, keyboard, and CLI search with matching, empty, and clear states.
+
+## Not yet mapped
+
+Inventory sources: browser routes in `src/routes.ts`, CLI commands in `src/cli/commands/`, toolbar and settings menus in `src/ui/menus.ts`. Last checked 2026-10-05.
+
+| Area | Route or source path | Partial coverage | Notes for the future file |
+| --- | --- | --- | --- |
+| Export notes | `/export`, `notes export` (`src/cli/commands/export.ts`) | None | Writes Markdown or JSON to a chosen path. Prove the written file, not only the `Export complete` status. |
+| Settings | `/settings` | `search.md` toggles `Include archived` from the search dialog only | Covers theme, default sort, and archive visibility. Restore defaults after each drive. |
+| Tags | `/tags`, `notes tag` (`src/cli/commands/tag.ts`) | None | Renaming a tag rewrites every tagged note. Seed tagged notes in the disposable data directory first. |
+
+Delete note stays inside `create-note.md` fixture cleanup instead of getting its own file: deletion is permanent, so it is driven only on notes the run created.

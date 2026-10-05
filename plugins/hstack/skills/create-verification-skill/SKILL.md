@@ -35,7 +35,11 @@ Frontmatter: `name: verify-<app>` and a `description` that names the app, the su
 
 ## 3. Seed the feature map
 
-Create `.claude/skills/verify-<app>/features/README.md` plus one file per user-facing feature you can identify (aim for the top 3-5 to start, from routes, commands, menus, or docs). Follow the shape in [`references/feature-map-example/`](references/feature-map-example/), with a README index and one file per feature. Each file answers, from the user's point of view: what the feature is, how to reach it, how to drive it with the harness, and what observable end state proves it works. The four H2s are `Sub-features`, `How to get to it (user POV)`, `Driving it with <harness>`, and `Gotchas`. The map is the repo's maintained verification source; a proof that drives one convenient entry point is incomplete when the map lists others.
+Inventory first: list every user-facing area from the sources that define the surface — route table, command registry, menu definitions, feature folders — and note which sources you read.
+
+Create `.claude/skills/verify-<app>/features/README.md` plus one file per seeded feature (aim for the top 3-5 to start). Follow the shape in [`references/feature-map-example/`](references/feature-map-example/), with a README index and one file per feature. Each file answers, from the user's point of view: what the feature is, how to reach it, how to drive it with the harness, and what observable end state proves it works. The four H2s are `Sub-features`, `How to get to it (user POV)`, `Driving it with <harness>`, and `Gotchas`. The map is the repo's maintained verification source; a proof that drives one convenient entry point is incomplete when the map lists others.
+
+Write the rest of the inventory down; anything left only in chat is lost when the session ends. Every unseeded user-facing area goes under `## Not yet mapped` at the end of `features/README.md`, one row each: area, concrete route or source path, any partial coverage in other feature files, notes for the future file. An area deliberately kept inside another feature file (e.g. a step with lasting side effects, driven only within a larger flow) gets a short paragraph naming its host file instead of a row. The section states its inventory sources and the date checked; maintenance re-reads exactly those sources. Step 3 isn't done until this section exists, even if it only says nothing is left unmapped. Unmapped is a reportable status, distinct from verified and verified-unreachable: an unmapped area was never driven and is never reported as covered.
 
 Link the map from the generated SKILL.md so a reader knows to open `features/README.md` before driving.
 
@@ -45,6 +49,6 @@ Run its own instructions end to end once: launch, doctor, drive ONE mapped featu
 
 ## 5. Hand it over
 
-Report what was generated, which feature was proven, and where its evidence is. Offer to add a one-line pointer to the project's CLAUDE.md (e.g. "To verify a change in the running app, use the `verify-<app>` skill") so future sessions find it; don't add it unasked.
+Report what was generated, which feature was proven, where its evidence is, and the `Not yet mapped` areas next to the seeded ones, so the user sees how much of the map is left. Offer to add a one-line pointer to the project's CLAUDE.md (e.g. "To verify a change in the running app, use the `verify-<app>` skill") so future sessions find it; don't add it unasked.
 
 Point the user at `/hstack:maintain-verification-skill` for keeping the map honest as the app changes. Suggest a cadence only if they ask.
