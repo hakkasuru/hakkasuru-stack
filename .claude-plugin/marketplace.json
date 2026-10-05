@@ -11,6 +11,11 @@
       "name": "personal-brand",
       "source": "./plugins/personal-brand",
       "description": "Personal branding skills for content creation"
+    },
+    {
+      "name": "hstack",
+      "source": "./plugins/hstack",
+      "description": "Hakkasuru's personal toolkit of skills"
     }
   ]
 }
