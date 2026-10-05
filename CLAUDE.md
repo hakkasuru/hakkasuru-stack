@@ -1,6 +1,6 @@
 # hakkasuru-stack
 
-Personal Claude Code skills marketplace. Each subdirectory under `plugins/` is a self-contained plugin.
+Claude Code plugins marketplace. Each subdirectory under `plugins/` is a self-contained plugin.
 
 ## Structure
 

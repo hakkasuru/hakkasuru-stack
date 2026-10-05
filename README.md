@@ -1,6 +1,6 @@
 # hakkasuru-stack
 
-Personal Claude Code skills marketplace.
+Claude Code plugins marketplace.
 
 ## Installation
 
