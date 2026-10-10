@@ -1,6 +1,6 @@
 # Third-party notices
 
-The `create-verification-skill` (including `references/feature-map-example/`), `maintain-verification-skill`, `unslop`, `hermes`, `how`, `why`, `teach`, `principle-build-the-lever`, `principle-encode-lessons-in-structure`, `principle-laziness-protocol`, and `principle-prove-it-works` skills (including their `references/` directories) are adapted for Claude Code from the pstack plugin in https://github.com/cursor/plugins (`pstack/skills/`), used under the MIT License. `hermes` is adapted from pstack's `technical-writing` skill. `why/references/sources/aws.md`, `why/references/sources/gcloud.md`, `why/references/sources/snowflake.md`, and `why/references/adding-a-source.md` are original to hstack.
+The `create-verification-skill` (including `references/feature-map-example/`), `maintain-verification-skill`, `unslop`, `hermes`, `how`, `why`, `teach`, `principle-build-the-lever`, `principle-encode-lessons-in-structure`, `principle-laziness-protocol`, `principle-never-block-on-the-human`, and `principle-prove-it-works` skills (including their `references/` directories) are adapted for Claude Code from the pstack plugin in https://github.com/cursor/plugins (`pstack/skills/`), used under the MIT License. `hermes` is adapted from pstack's `technical-writing` skill. `why/references/sources/aws.md`, `why/references/sources/gcloud.md`, `why/references/sources/snowflake.md`, and `why/references/adding-a-source.md` are original to hstack.
 
 ```
 MIT License
