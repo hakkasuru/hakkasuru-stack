@@ -1,6 +1,6 @@
 ---
 name: unslop
-description: "Cut AI tells from any writing: AI vocabulary, filler, hedging, mannered prose, and formatting patterns. Use for /hstack:unslop on a draft, doc, PR description, or commit message."
+description: "Edit text to remove AI tells: AI vocabulary, filler, hedging, mannered prose, and formatting patterns."
 disable-model-invocation: true
 ---
 

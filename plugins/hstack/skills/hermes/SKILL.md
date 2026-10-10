@@ -1,6 +1,6 @@
 ---
 name: hermes
-description: "Layered technical-writing standard: Diátaxis structure, Google developer style sentences, STE instruction rules, Global English syntax. Use for /hstack:hermes when writing or reviewing docs, RFCs, readmes, PR descriptions, or commit messages."
+description: "Write or review technical writing (docs, RFCs, readmes, PR descriptions, commit messages) against a layered standard: Diátaxis structure, Google developer style, STE instruction rules, and Global English syntax."
 disable-model-invocation: true
 ---
 
