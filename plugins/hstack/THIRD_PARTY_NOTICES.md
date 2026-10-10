@@ -1,6 +1,6 @@
 # Third-party notices
 
-The `create-verification-skill` and `maintain-verification-skill` skills, including `create-verification-skill/references/feature-map-example/`, are adapted for Claude Code from the pstack plugin in https://github.com/cursor/plugins (`pstack/skills/`), used under the MIT License:
+The `create-verification-skill` (including `references/feature-map-example/`), `maintain-verification-skill`, and `unslop` skills are adapted for Claude Code from the pstack plugin in https://github.com/cursor/plugins (`pstack/skills/`), used under the MIT License.
 
 ```
 MIT License
