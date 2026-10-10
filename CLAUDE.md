@@ -65,7 +65,7 @@ claude plugin validate plugins/<plugin-name> # a single plugin manifest
 - Plugin skills are invoked namespaced as `/<plugin>:<skill>` (e.g. `/hstack:create-verification-skill`). Skills refer to each other by these names. If you rename a skill or plugin, update every reference to it.
 - When you change a plugin's content, bump `version` in its `plugin.json`. Existing installs use the version to detect updates. Make the bump its own commit (e.g. "Bump hstack to 0.2.0").
 - Skill bodies are written for a Claude agent that reads them cold in the middle of a task, not for human readers.
-- `hstack`'s verification skills are adapted from Cursor's pstack plugin (MIT). Keep `plugins/hstack/THIRD_PARTY_NOTICES.md` accurate when you add or rename adapted content.
+- `hstack`'s skills are adapted from Cursor's pstack plugin (MIT); `hermes` is pstack's `technical-writing` renamed. Keep `plugins/hstack/THIRD_PARTY_NOTICES.md` accurate when you add or rename adapted content.
 
 ## Installation
 
