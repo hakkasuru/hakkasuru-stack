@@ -118,12 +118,13 @@ Every run works in its own git worktree, tier 0 included. It never touches the u
 
 1. Find the default branch: `git symbolic-ref refs/remotes/origin/HEAD`. If that fails, `git ls-remote --symref origin HEAD`. If both fail, `gh repo view --json defaultBranchRef` or `glab repo view -F json`.
 2. Pick the branch name. Follow the repo's convention when it has one (CLAUDE.md, CONTRIBUTING, or the pattern recent merged branches use). Otherwise `hstack/cook-<slug>`, where the slug is the ticket key when there is one plus a short description, for example `hstack/cook-proj-123-fix-login-redirect`.
-3. Pick the path: `<repo-parent>/<repo>.worktrees/<branch-slug>`, outside the repo.
+3. Pick the path: `<repo-root>/.claude/worktrees/<branch-slug>`, where `<repo-root>` is the main checkout. Claude Code enters a worktree under `.claude/worktrees/` without asking. Any other path, such as a sibling folder, makes `EnterWorktree` wait for the user's approval, and headless runs can't give it.
 4. If the branch or the path already exists, append `-2`, then `-3`, and so on. Never reuse or delete an existing branch or worktree.
-5. `git fetch origin <default>`, then `git worktree add <path> -b <branch> origin/<default>`.
-6. Switch the session into the worktree with Claude Code's `EnterWorktree` tool in `path` mode. The user invoked `cook`, which works in a worktree, so this is the asked-for use. Edits there then need no permission prompts. If `EnterWorktree` isn't available, `cd` into the worktree for every command.
+5. Make sure git ignores the worktree, so it never shows as untracked in the user's checkout. Run `git check-ignore -q .claude/worktrees/<branch-slug>` from the main checkout. If it exits non-zero, append the line `.claude/worktrees/` to `<git-common-dir>/info/exclude`, where `<git-common-dir>` comes from `git rev-parse --git-common-dir`. That file is local to the clone. Never edit `.gitignore` for this: it would add an unrelated change to the MR.
+6. `git fetch origin <default>`, then `git worktree add <path> -b <branch> origin/<default>`.
+7. Switch the session into the worktree with Claude Code's `EnterWorktree` tool in `path` mode. The user invoked `cook`, which works in a worktree, so this is the asked-for use. If `EnterWorktree` isn't available, `cd` into the worktree for every command.
 
-`EnterWorktree` accepts a sibling path like this only once per session. Tier 3 creates each stacked MR's branch inside the same worktree, branching off the one below it. For multi-repo work, `cd` into the other repos' worktrees instead of entering them.
+Tier 3 creates each stacked MR's branch inside the same worktree, branching off the one below it. For multi-repo work, give each repo its own worktree under its own `.claude/worktrees/`, ignored the same way, and `cd` into the other repos' worktrees instead of entering them.
 
 The worktree stays through the fix loop. After the final report, leave it with `ExitWorktree` and `action: "keep"`, since `ExitWorktree` doesn't remove a worktree entered by path. Then, from the main checkout, run `git worktree remove <path>`. The branch stays, because its PR or MR needs it. If the run stopped with work unfinished, skip the removal, keep the worktree for `--resume`, and say where it is.
 
@@ -159,7 +160,7 @@ This line is what `--resume` finds later.
 
 `/hstack:cook --resume` continues the most recent unfinished run in this repo.
 
-1. Find the transcript folders: `~/.claude/projects/<slug>/`, where `<slug>` is an absolute path with every `/` replaced by `-`. Check the repo's own path and the path of each worktree from `git worktree list`.
+1. Find the transcript folders: `~/.claude/projects/<slug>/`, where `<slug>` is an absolute path with every character other than a letter, digit, or `-` replaced by `-` (so `/work/app/.claude/worktrees/x` becomes `-work-app--claude-worktrees-x`). Check the repo's own path and the path of each worktree from `git worktree list`.
 2. Grep their `*.jsonl` files for the literal `cook state ·`. Skip blocks whose step is `done`, and runs whose newest block is `done`. Take the newest remaining block by the entry's `timestamp`.
 3. Read [../recall/SKILL.md](../recall/SKILL.md) and run it, scoped to this repo, only for surrounding context: decisions made, open questions, the brief.
 4. Check the block against live state: the worktree exists, the branches and their commits match, the MRs are in the state the block says.
@@ -206,6 +207,7 @@ The `babysit` watcher runs in the session's background. If the user closes the s
 Get the state directory and config checks from one command, `python3 <skill-dir>/scripts/tune.py caps`, whose `"state"` field reports the directory, whether it exists, and whether it is writable, and whose `warnings` report a broken `cook.json`. Don't expand `$HSTACK_HOME` or list `~/.claude/hstack/` by hand.
 
 - `git` is present, this is a git repo with an `origin`, and `git worktree list` works. Outside a git repo, this line fails and the rest still run.
+- `.claude/worktrees/` is ignored (`git check-ignore -q .claude/worktrees/x`). If it isn't, this line passes with a note that the first run adds it to the clone's `info/exclude`.
 - The repo's host, from `origin`, and its CLI installed and signed in: `gh auth status` for GitHub, `glab auth status` for GitLab. Otherwise, whether a matching MCP server is connected.
 - `python3` is present.
 - The state directory (`$HSTACK_HOME` or `~/.claude/hstack/`) exists and is writable, or can be created.

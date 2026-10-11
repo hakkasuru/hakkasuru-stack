@@ -73,7 +73,8 @@ The unit caps come from 58 finished tasks: each cap is the 80th percentile of st
 
 `cook` will:
 
-- work in its own git worktree, next to your repo, so your checkout is never touched
+- work in its own git worktree under `.claude/worktrees/` in your repo, so your checkout is never touched
+- add `.claude/worktrees/` to the clone's local `.git/info/exclude` if git doesn't already ignore it, so the worktrees never show in `git status`. It never edits `.gitignore`.
 - push the new branches it creates
 - open their PRs or MRs, then watch the pipelines and report the result
 - fix a pipeline failure its own change caused, up to twice
