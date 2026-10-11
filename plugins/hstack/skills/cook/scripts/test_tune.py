@@ -167,6 +167,64 @@ class TuneTest(unittest.TestCase):
         finally:
             locked.chmod(0o700)
 
+    def test_apply_refuses_wrong_nested_shapes(self):
+        self.home.mkdir(parents=True)
+        for shape, args in [
+            ({"caps": {"units": 7}}, ["--change", "units.2=10"]),
+            ({"repos": {"gitlab.com/g/p": {"caps": 5}}}, ["--change", "units.2=10", "--repo", "gitlab.com/g/p"]),
+        ]:
+            (self.home / "cook.json").write_text(json.dumps(shape))
+            rc, out, err = run(["apply"] + args + ["--evidence", "x"], self.home)
+            self.assertNotEqual(rc, 0, f"{shape}: {err}")
+            self.assertIn("error", out or {}, f"{shape}: no JSON error, stderr: {err[-200:]}")
+            self.assertEqual(json.loads((self.home / "cook.json").read_text()), shape)
+
+    def test_record_unwritable_state_dir_returns_json_error(self):
+        locked = Path(self.tmp.name) / "locked"
+        locked.mkdir()
+        locked.chmod(0o500)
+        try:
+            rc, out, err = run_record(locked / "hstack")
+            self.assertNotEqual(rc, 0)
+            self.assertIn("error", out or {}, f"no JSON error, stderr: {err[-200:]}")
+        finally:
+            locked.chmod(0o700)
+
+    def test_attempts_note_excludes_stuck_units(self):
+        for _ in range(20):
+            run_record(self.home, attempts=[3, 1], stuck_units=1)
+        rc, out, _ = run(["suggest"], self.home)
+        note = [n for n in out["notes"] if "last allowed attempt" in n][0]
+        self.assertRegex(note, r"(?<!\d)0 units succeeded on the last allowed attempt")
+        self.assertRegex(note, r"(?<!\d)20 got stuck")
+
+    def test_record_accepts_no_ci_outcome(self):
+        rc, out, _ = run_record(self.home, outcome="no_ci")
+        self.assertEqual(rc, 0, out)
+
+    def test_remote_normalizes_addresses(self):
+        cases = {
+            "git@github.com:Hakkasuru/Slog.git": "github.com/hakkasuru/slog",
+            "https://github.com/Hakkasuru/slog": "github.com/hakkasuru/slog",
+            "ssh://git@gitlab.example.com:2222/Group/Sub/Proj.git": "gitlab.example.com/group/sub/proj",
+            "http://GitLab.com/g/p.git/": "gitlab.com/g/p",
+        }
+        for url, expected in cases.items():
+            rc, out, _ = run(["remote", "--url", url], self.home)
+            self.assertEqual(rc, 0, url)
+            self.assertEqual(out["remote"], expected, url)
+
+    def test_remote_reads_origin_from_git(self):
+        repo = Path(self.tmp.name) / "repo"
+        subprocess.run(["git", "init", "-q", str(repo)], check=True)
+        subprocess.run(["git", "-C", str(repo), "remote", "add", "origin", "git@github.com:O/R.git"], check=True)
+        env = dict(os.environ, HSTACK_HOME=str(self.home))
+        out = subprocess.run([sys.executable, str(SCRIPT), "remote"], cwd=repo, capture_output=True, text=True, env=env)
+        self.assertEqual(json.loads(out.stdout)["remote"], "github.com/o/r")
+        out = subprocess.run([sys.executable, str(SCRIPT), "remote"], cwd=self.tmp.name, capture_output=True, text=True, env=env)
+        self.assertNotEqual(out.returncode, 0)
+        self.assertIn("error", json.loads(out.stdout))
+
     def test_suggest_skips_bad_lines(self):
         for _ in range(5):
             run_record(self.home, final_tier=1, units_used=3)

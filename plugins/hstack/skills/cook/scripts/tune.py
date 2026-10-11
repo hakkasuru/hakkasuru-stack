@@ -7,6 +7,8 @@ import argparse
 import json
 import math
 import os
+import re
+import subprocess
 import sys
 from datetime import date, datetime
 from pathlib import Path
@@ -28,7 +30,7 @@ BASELINE = {
 MIN_TIER_RUNS = 5
 MIN_RUNS = 20
 ESCALATION_RATE = 0.3
-OUTCOMES = {"green", "red", "stopped"}
+OUTCOMES = {"green", "red", "no_ci", "stopped"}
 RECORD_FIELDS = {
     "repo": str, "date": str, "outcome": str, "gauge_tier": int, "final_tier": int, "escalations": list,
     "units_planned": int, "units_used": int, "attempts": list, "stuck_units": int, "review_rounds": int,
@@ -191,9 +193,12 @@ def cmd_record(args):
     if problem:
         fail(problem)
     _, ledger = paths()
-    ledger.parent.mkdir(parents=True, exist_ok=True)
-    with open(ledger, "a") as f:
-        f.write(json.dumps(rec, sort_keys=True) + "\n")
+    try:
+        ledger.parent.mkdir(parents=True, exist_ok=True)
+        with open(ledger, "a") as f:
+            f.write(json.dumps(rec, sort_keys=True) + "\n")
+    except OSError as exc:
+        fail(f"can't write the ledger at {ledger}: {exc.strerror}")
     emit({"recorded": True, "ledger": str(ledger)})
 
 
@@ -246,7 +251,7 @@ def suggestions_for(runs, caps, scope, out, notes):
                         "evidence": f"95th percentile of gauge operations is {p95} across {len(runs)} runs"})
         attempts = [a for r in runs for a in r["attempts"]]
         stuck = sum(r["stuck_units"] for r in runs)
-        third = sum(1 for a in attempts if a == caps["attempts"])
+        third = max(0, sum(1 for a in attempts if a == caps["attempts"]) - stuck)
         notes.append(f"{scope}: {third} units succeeded on the last allowed attempt, {stuck} got stuck, across {len(attempts)} units.")
         overrides = [r for r in runs if r.get("tier_override") is not None]
         if len(overrides) >= MIN_TIER_RUNS:
@@ -286,6 +291,12 @@ def cmd_apply(args):
             fail(f"cook.json {key} has the wrong type; fix the file by hand before applying")
     if args.repo and not isinstance(data.get("repos", {}).get(args.repo, {}), dict):
         fail(f"cook.json repos.{args.repo} has the wrong type; fix the file by hand before applying")
+    section = data.get("repos", {}).get(args.repo, {}) if args.repo else data
+    label = f"repos.{args.repo}.caps" if args.repo else "caps"
+    if not isinstance(section.get("caps", {}), dict):
+        fail(f"cook.json {label} has the wrong type; fix the file by hand before applying")
+    if not isinstance(section.get("caps", {}).get("units", {}), dict):
+        fail(f"cook.json {label}.units has the wrong type; fix the file by hand before applying")
     data.setdefault("version", 1)
     data.setdefault("history", [])
     changes = []
@@ -318,6 +329,31 @@ def cmd_apply(args):
     emit({"applied": applied, "file": str(config)})
 
 
+def normalize_remote(url):
+    value = url.strip()
+    value = re.sub(r"^[a-z+]+://", "", value)
+    value = re.sub(r"^[^@/]+@", "", value)
+    host, sep, path = value.partition("/")
+    if ":" in host:
+        host, _, rest = host.partition(":")
+        if not rest.isdigit():
+            path = rest + sep + path
+    value = f"{host}/{path}".rstrip("/")
+    if value.endswith(".git"):
+        value = value[:-4]
+    return value.lower()
+
+
+def cmd_remote(args):
+    url = args.url
+    if not url:
+        out = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True, text=True)
+        if out.returncode != 0:
+            fail("not a git repo with an origin remote")
+        url = out.stdout
+    emit({"remote": normalize_remote(url)})
+
+
 def emit(document):
     print(json.dumps(document, indent=2))
 
@@ -330,6 +366,8 @@ def fail(message):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
+    p = sub.add_parser("remote", help="the repo's normalized remote, from --url or git's origin")
+    p.add_argument("--url")
     p = sub.add_parser("caps", help="effective caps for a repo, with the source of each")
     p.add_argument("--repo")
     sub.add_parser("record", help="append one finished run (JSON on stdin) to the ledger")
@@ -340,7 +378,7 @@ def main():
     p.add_argument("--repo")
     p.add_argument("--evidence", required=True)
     args = parser.parse_args()
-    {"caps": cmd_caps, "record": cmd_record, "suggest": cmd_suggest, "apply": cmd_apply}[args.command](args)
+    {"remote": cmd_remote, "caps": cmd_caps, "record": cmd_record, "suggest": cmd_suggest, "apply": cmd_apply}[args.command](args)
 
 
 if __name__ == "__main__":
