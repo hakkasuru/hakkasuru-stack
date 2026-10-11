@@ -142,6 +142,31 @@ class TuneTest(unittest.TestCase):
         self.assertEqual(caps["units.2"]["suggested"], 10)
         self.assertEqual(caps["units.2"]["current"], 8)
 
+    def test_suggest_lowers_cap_only_when_far_below(self):
+        for used in [5, 6, 7, 7, 7]:
+            run_record(self.home, gauge_tier=2, final_tier=2, units_used=used)
+        rc, out, _ = run(["suggest"], self.home)
+        self.assertNotIn("units.2", {s["cap"] for s in out["suggestions"]})
+        for used in [2, 2, 3, 3, 3]:
+            run_record(self.home, gauge_tier=3, final_tier=3, units_used=used)
+        rc, out, _ = run(["suggest"], self.home)
+        caps = {s["cap"]: s for s in out["suggestions"]}
+        self.assertEqual(caps["units.3"]["suggested"], 3)
+
+    def test_caps_reports_state_dir(self):
+        rc, out, _ = run(["caps"], self.home)
+        self.assertEqual(out["state"]["dir"], str(self.home))
+        self.assertFalse(out["state"]["exists"])
+        self.assertTrue(out["state"]["writable"])
+        locked = Path(self.tmp.name) / "locked"
+        locked.mkdir()
+        locked.chmod(0o500)
+        try:
+            rc, out, _ = run(["caps"], locked / "hstack")
+            self.assertFalse(out["state"]["writable"])
+        finally:
+            locked.chmod(0o700)
+
     def test_suggest_skips_bad_lines(self):
         for _ in range(5):
             run_record(self.home, final_tier=1, units_used=3)

@@ -136,9 +136,17 @@ def effective(repo):
     return caps, sources, warnings
 
 
+def state_info():
+    h = home()
+    probe = h
+    while not probe.exists() and probe != probe.parent:
+        probe = probe.parent
+    return {"dir": str(h), "exists": h.exists(), "writable": os.access(probe, os.W_OK)}
+
+
 def cmd_caps(args):
     caps, sources, warnings = effective(args.repo)
-    emit({"caps": caps, "sources": sources, "warnings": warnings})
+    emit({"caps": caps, "sources": sources, "warnings": warnings, "state": state_info()})
 
 
 def is_int(value):
@@ -220,9 +228,11 @@ def suggestions_for(runs, caps, scope, out, notes):
         if len(used) >= MIN_TIER_RUNS:
             p80 = max(1, percentile(used, 0.8))
             current = caps["units"][tier]
-            if p80 != current:
-                out.append({"cap": f"units.{tier}", "current": current, "suggested": p80, "scope": scope,
-                            "evidence": f"80th percentile {p80} units across {len(used)} tier {tier} runs"})
+            evidence = f"80th percentile {p80} units across {len(used)} tier {tier} runs"
+            if p80 > current or p80 * 2 < current:
+                out.append({"cap": f"units.{tier}", "current": current, "suggested": p80, "scope": scope, "evidence": evidence})
+            elif p80 < current:
+                notes.append(f"{scope}: tier {tier} {evidence}, under the cap of {current} but not under half of it, so no change.")
         started = [r for r in runs if str(r["gauge_tier"]) == tier]
         if len(started) >= MIN_TIER_RUNS:
             rate = sum(1 for r in started if r["final_tier"] > r["gauge_tier"]) / len(started)
