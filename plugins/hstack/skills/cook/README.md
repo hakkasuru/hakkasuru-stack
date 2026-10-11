@@ -95,6 +95,8 @@ It keeps going on its own except:
 - when the task needs more units than its tier allows and nothing explains why
 - when the pipeline is still red after two fix attempts, or failed for a reason the change didn't cause
 - when the task needs another repo: it asks for the local path or clone URL
+- when a stack needs a force-push after the pipeline watch has started
+- when `--resume` finds a saved state that no longer matches the worktree or the MRs
 
 ## Resuming
 

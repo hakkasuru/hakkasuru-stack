@@ -37,8 +37,7 @@ At any checkpoint: escalation trigger → raise the tier, keep the work · unit 
 
 1. **Start.**
    - `--doctor`: go to Doctor. `--tune`: go to Tuning. Both work outside a git repo.
-   - Otherwise, find the repo: `git remote get-url origin`. Not a git repo, or no `origin`: say so and stop.
-   - Normalize the remote into `<remote>`: strip `ssh://`, `https://`, `http://`, and a leading `git@`; replace the first `:` with `/` when it separates host and path; drop a trailing `.git`; lowercase the host. So `git@github.com:Hakkasuru/hstack.git` and `https://github.com/Hakkasuru/hstack` both become `github.com/Hakkasuru/hstack`.
+   - Otherwise, get the repo's key: `python3 <skill-dir>/scripts/tune.py remote`. It reads `origin` and returns `<remote>`, normalized and lowercased, so `git@github.com:Hakkasuru/hstack.git` and `https://github.com/Hakkasuru/hstack` both become `github.com/hakkasuru/hstack`. If it returns an error, this isn't a git repo with an `origin`: say so and stop.
    - Load the effective caps: `python3 <skill-dir>/scripts/tune.py caps --repo <remote>`. Note any warnings for the final report. If `python3` is missing or the script fails, use the defaults in the Tiers table and say so in the report.
    - `--resume`: go to Resuming.
    - State the delivery boundary in one line: "I'll push new branches and open MRs for this task. I won't merge or write to tickets."
@@ -117,7 +116,7 @@ Before applying a principle, read its full `SKILL.md` at the path below. The fin
 
 Every run works in its own git worktree, tier 0 included. It never touches the user's checkout, and two runs never collide.
 
-1. Find the default branch: `git symbolic-ref refs/remotes/origin/HEAD`. If that fails, `gh repo view --json defaultBranchRef` or `glab repo view -F json`.
+1. Find the default branch: `git symbolic-ref refs/remotes/origin/HEAD`. If that fails, `git ls-remote --symref origin HEAD`. If both fail, `gh repo view --json defaultBranchRef` or `glab repo view -F json`.
 2. Pick the branch name. Follow the repo's convention when it has one (CLAUDE.md, CONTRIBUTING, or the pattern recent merged branches use). Otherwise `hstack/cook-<slug>`, where the slug is the ticket key when there is one plus a short description, for example `hstack/cook-proj-123-fix-login-redirect`.
 3. Pick the path: `<repo-parent>/<repo>.worktrees/<branch-slug>`, outside the repo.
 4. If the branch or the path already exists, append `-2`, then `-3`, and so on. Never reuse or delete an existing branch or worktree.
@@ -139,7 +138,7 @@ Ticket sources are read-only. `cook` never writes back to a ticket: no comments,
 ## Delivery
 
 - **Authorized by invoking `/hstack:cook`:** pushing new branches this run created, opening their PRs or MRs (ready for review, or draft with `--draft`), and handing them to `babysit`.
-- **Never authorized:** merging, pushing to branches this run didn't create, pushing to the default branch.
+- **Never authorized:** merging, pushing to branches this run didn't create, pushing to the default branch. Never offer to push to a branch this run didn't create, even on request. Suggest the user push it, or start a new run for the change.
 - **Force-push:** prefer new commits. A restack uses `--force-with-lease`, only on this run's branches, and only before the handoff to `babysit`. After that, ask.
 
 ## State and the cook state block
@@ -189,11 +188,11 @@ The `babysit` watcher runs in the session's background. If the user closes the s
  "attempts": [1, 1, 2], "stuck_units": 0, "review_rounds": 0, "fix_rounds": 0, "gauge_ops": 8, "tier_override": null}
 ```
 
-`tier_override` is the `--tier` value, or `null` when Gauge's tier stood. If `record` rejects the object, fix the field it names and retry. A failure to record never changes the run's outcome; mention it in the report.
+`outcome` is `"green"` when the pipeline passed, `"red"` when it ended failed, `"no_ci"` when `babysit` reported no pipeline (nothing failed, but nothing checked the change on CI either), and `"stopped"` when the run stopped before finishing. `tier_override` is the `--tier` value, or `null` when Gauge's tier stood. If `record` rejects the object, fix the field it names and retry. A failure to record never changes the run's outcome; mention it in the report.
 
 **`--tune`.**
 
-1. Run `python3 <skill-dir>/scripts/tune.py suggest --repo <remote>` (leave out `--repo` outside a git repo).
+1. Run `python3 <skill-dir>/scripts/tune.py remote` first to get `<remote>`. Then run `python3 <skill-dir>/scripts/tune.py suggest --repo <remote>`. If `remote` returns an error, this isn't a git repo: run `suggest` without `--repo`.
 2. Show each suggestion with its evidence, the notes, and the baseline from the morpheus-os calibration. With too few runs there are no suggestions; say how many runs exist.
 3. Ask which suggestions to apply.
 4. For each approved one, run `python3 <skill-dir>/scripts/tune.py apply --change <path>=<value> [--repo <remote>] --evidence "<evidence>"`. A suggestion scoped to a repo applies with `--repo`.
