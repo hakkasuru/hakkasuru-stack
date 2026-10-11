@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # hakkasuru-stack
 
-Claude Code plugins marketplace. Each subdirectory under `plugins/` is a self-contained plugin. Plugins are plain Markdown and JSON, with one exception: `hstack`'s `babysit` skill ships Python scripts. There is no build or lint step.
+Claude Code plugins marketplace. Each subdirectory under `plugins/` is a self-contained plugin. Plugins are plain Markdown and JSON, with two exceptions: `hstack`'s `babysit` and `cook` skills ship Python scripts. There is no build or lint step.
 
 ## Structure
 
@@ -21,7 +21,7 @@ hakkasuru-stack/
 │           └── <skill-name>/
 │               ├── SKILL.md
 │               ├── references/      # Optional supporting files, linked relatively from SKILL.md
-│               └── scripts/         # Optional executables the skill runs (babysit only today)
+│               └── scripts/         # Optional executables the skill runs (babysit, cook)
 └── CLAUDE.md
 ```
 
@@ -40,7 +40,13 @@ python3 plugins/hstack/skills/babysit/scripts/github.py -R cli/cli calibrate    
 python3 plugins/hstack/skills/babysit/scripts/gitlab.py -R gitlab-org/cli calibrate
 ```
 
-Test every subcommand read-only against real public repos (`cli/cli` on GitHub, `gitlab-org/cli` on GitLab). For paths you can't reach live, such as a pipeline still running at the timeout, put stub `gh` or `glab` executables first on `PATH`. Delete `__pycache__/` before committing.
+For `cook`'s `tune.py`, run its unit tests. They use a temporary `HSTACK_HOME` and never touch `~/.claude/hstack/`:
+
+```bash
+python3 plugins/hstack/skills/cook/scripts/test_tune.py
+```
+
+For `babysit`'s scripts, test every subcommand read-only against real public repos (`cli/cli` on GitHub, `gitlab-org/cli` on GitLab). For paths you can't reach live, such as a pipeline still running at the timeout, put stub `gh` or `glab` executables first on `PATH`. Delete `__pycache__/` before committing.
 
 ## Adding a Plugin
 
@@ -74,11 +80,12 @@ Test every subcommand read-only against real public repos (`cli/cli` on GitHub, 
 ## Conventions
 
 - Plugin skills are invoked namespaced as `/<plugin>:<skill>` (e.g. `/hstack:create-verification-skill`). Skills refer to each other by these names. If you rename a skill or plugin, update every reference to it.
-- A skill with `disable-model-invocation: true` can't be called through the Skill tool, even by another skill. A skill that builds on another one reads it by relative path instead (`../<skill>/SKILL.md`). For example, `teach` reads `how` and `why`, `hermes` and `teach` read `unslop`, and `babysit` reads `hermes`. Keep these paths valid when renaming.
+- A skill with `disable-model-invocation: true` can't be called through the Skill tool, even by another skill. A skill that builds on another one reads it by relative path instead (`../<skill>/SKILL.md`). For example, `teach` reads `how` and `why`, `hermes` and `teach` read `unslop`, `babysit` reads `hermes`, and `cook` reads `babysit`, `recall`, `hermes`, `how`, `why`, and the principles. Keep these paths valid when renaming.
 - Skill bodies are written for a Claude agent that reads them cold in the middle of a task, not for human readers. `hstack` skill headings use sentence case.
 - Skill scripts run by absolute path from the skill's base directory, use only the Python 3 standard library, and stay read-only.
 - Skills that reach external systems prefer a terminal CLI (`gh`, `glab`, `aws`, `gcloud`, `snow`) and fall back to an MCP server. They never run a login command. An unauthenticated source is reported as a gap.
-- Two skills are built to be extended. To add an evidence source to `why`, follow `why/references/adding-a-source.md`. To add a watch target to `babysit`, follow the runbook contract in `babysit/SKILL.md`.
+- Three skills are built to be extended. To add an evidence source to `why`, follow `why/references/adding-a-source.md`. To add a watch target to `babysit`, follow the runbook contract in `babysit/SKILL.md`. To add a requirements source to `cook`, follow `cook/references/sources/index.md`.
+- `cook` keeps user-level state in `~/.claude/hstack/` (`cook-runs.jsonl`, `cook.json`), outside the plugin cache so updates never touch it.
 - When you change a plugin's content, bump `version` in its `plugin.json`. Existing installs use the version to detect updates. Commits are split as content, then the notices change, then the bump in its own commit (e.g. "Bump hstack to 0.2.0"). Commits go straight to `main`.
 
 ## Adapting skills from pstack
