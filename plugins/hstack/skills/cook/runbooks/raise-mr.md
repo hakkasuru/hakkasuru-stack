@@ -20,25 +20,27 @@ In a fix round, push the new commits to the existing branch. The open PR or MR p
 
 ## Open
 
-Write the title and the description to files in the scratchpad first (`<title-file>`, `<description-file>`), then open the PR or MR. Never put ticket-derived text directly inside a quoted shell argument: a title containing `$(...)` or backticks would run as a command. Stack: each one's base is the branch below it, and the bottom one's base is the default branch.
+Write the title and the description to files in the scratchpad first (`<title-file>`, `<description-file>`). Then open the PR or MR through the host's API, where `-F key=@<file>` makes the CLI read the value from the file. Never put ticket-derived text inside a shell argument, and don't use command substitution like `$(cat ...)`: a title containing `$(...)` or backticks would run as a command, and Claude Code's permission checks block substitution anyway. Stack: each one's base is the branch below it, and the bottom one's base is the default branch.
 
-GitHub:
-
-```bash
-gh pr create --base <base> --head <branch> --title "$(cat <title-file>)" --body-file <description-file>
-```
-
-GitLab:
+GitHub, from inside the repo (`{owner}/{repo}` fills in from the checkout):
 
 ```bash
-glab mr create --target-branch <base> --source-branch <branch> --title "$(cat <title-file>)" --description "$(cat <description-file>)" --squash-before-merge --yes
+gh api repos/{owner}/{repo}/pulls -f head=<branch> -f base=<base> -F title=@<title-file> -F body=@<description-file> -F draft=false
 ```
 
-Add `--draft` to either command when the user passed `--draft`. Otherwise the PR or MR opens ready for review.
+GitLab, from inside the repo (`:id` fills in from the checkout; add `--hostname <host>` for a self-managed instance):
+
+```bash
+glab api projects/:id/merge_requests -f source_branch=<branch> -f target_branch=<base> -F title=@<title-file> -F description=@<description-file> -F squash=true
+```
+
+The response's `html_url` (GitHub) or `web_url` (GitLab) is the link to report.
+
+With `--draft`: on GitHub, pass `-F draft=true`. On GitLab, start the title file with `Draft: `. Otherwise the PR or MR opens ready for review.
 
 ## Merge strategy
 
-Squash on merge, unless the repo's conventions say otherwise (CLAUDE.md, CONTRIBUTING, or the merge style of recent merged PRs or MRs). On GitLab, `--squash-before-merge` sets it on the MR; drop the flag when the repo's convention is to keep commits. GitHub has no per-PR flag, and setting it through auto-merge would be merging, so leave it to the repo's settings.
+Squash on merge, unless the repo's conventions say otherwise (CLAUDE.md, CONTRIBUTING, or the merge style of recent merged PRs or MRs). On GitLab, `-F squash=true` sets it on the MR; drop that field when the repo's convention is to keep commits. GitHub has no per-PR flag, and setting it through auto-merge would be merging, so leave it to the repo's settings.
 
 ## Title and description
 
