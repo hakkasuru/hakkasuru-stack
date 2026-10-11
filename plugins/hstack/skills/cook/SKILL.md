@@ -56,7 +56,7 @@ At any checkpoint: escalation trigger → raise the tier, keep the work · unit 
     - Green: go to step 12.
     - Red, and caused by the change (a test, lint, or build the diff broke): go back to step 7 with the diagnosis, push a fix commit to this run's branch, then repeat steps 9 and 10. At most `caps.fix_rounds` fix rounds. Still red after that: go to step 12.
     - Red, and not caused by the change (a flaky job, an infrastructure or network error, a failure that also exists on the default branch): go to step 12. Never re-run jobs.
-12. **Final report.** Write it (see Final report), then record the run in the ledger (see Tuning).
+12. **Final report.** Write it (see Final report), record the run in the ledger (see Tuning), and write a last `cook state` block with `step done`, or `step stopped` when the run stopped with work unfinished.
 
 ## Tiers
 
@@ -79,7 +79,7 @@ The unit caps shown are the defaults. The run uses the effective caps from `tune
 - a unit that uses all its attempts
 - a risk trigger appearing
 
-Escalation keeps the work done so far, and the new tier's cap counts the units already done. The tier never goes down.
+Escalation keeps the work done so far, and the new tier's cap counts the units already done. The tier never goes down. Add the new tier's steps to the todo list: review-plan runs only on the units not yet implemented, and review-diff always runs before raise-mr.
 
 ## Effort checkpoint
 
@@ -124,9 +124,9 @@ Every run works in its own git worktree, tier 0 included. It never touches the u
 5. `git fetch origin <default>`, then `git worktree add <path> -b <branch> origin/<default>`.
 6. Switch the session into the worktree with Claude Code's `EnterWorktree` tool in `path` mode. The user invoked `cook`, which works in a worktree, so this is the asked-for use. Edits there then need no permission prompts. If `EnterWorktree` isn't available, `cd` into the worktree for every command.
 
-Tier 3 creates each stacked MR's branch inside the same worktree, branching off the one below it, because `EnterWorktree` limits later switches.
+`EnterWorktree` accepts a sibling path like this only once per session. Tier 3 creates each stacked MR's branch inside the same worktree, branching off the one below it. For multi-repo work, `cd` into the other repos' worktrees instead of entering them.
 
-The worktree stays through the fix loop. After the final report, leave it with `ExitWorktree` and remove it. If the run stopped with work unfinished, keep it for `--resume` and say where it is.
+The worktree stays through the fix loop. After the final report, leave it with `ExitWorktree` and `action: "keep"`, since `ExitWorktree` doesn't remove a worktree entered by path. Then, from the main checkout, run `git worktree remove <path>`. The branch stays, because its PR or MR needs it. If the run stopped with work unfinished, skip the removal, keep the worktree for `--resume`, and say where it is.
 
 ## Multi-repo work
 
@@ -161,7 +161,7 @@ This line is what `--resume` finds later.
 `/hstack:cook --resume` continues the most recent unfinished run in this repo.
 
 1. Find the transcript folders: `~/.claude/projects/<slug>/`, where `<slug>` is an absolute path with every `/` replaced by `-`. Check the repo's own path and the path of each worktree from `git worktree list`.
-2. Grep their `*.jsonl` files for the literal `cook state ·`, and take the newest by the entry's `timestamp`.
+2. Grep their `*.jsonl` files for the literal `cook state ·`. Skip blocks whose step is `done`, and runs whose newest block is `done`. Take the newest remaining block by the entry's `timestamp`.
 3. Read [../recall/SKILL.md](../recall/SKILL.md) and run it, scoped to this repo, only for surrounding context: decisions made, open questions, the brief.
 4. Check the block against live state: the worktree exists, the branches and their commits match, the MRs are in the state the block says.
 5. Show the recovered state in one line and continue from the recorded step. If live state contradicts the block (worktree gone, branch rewritten), report the difference and stop. If no block is found, say so and stop.
@@ -202,7 +202,9 @@ The `babysit` watcher runs in the session's background. If the user closes the s
 
 ## Doctor
 
-`/hstack:cook --doctor` checks prerequisites without starting a task. It is read-only: it names fixes and never runs installs or logins. Print a checklist, each line pass or fail, with the fix for each failure:
+`/hstack:cook --doctor` checks prerequisites without starting a task. It is read-only: it names fixes and never runs installs or logins. Print a checklist where each line is pass, fail, or not checked, with the fix for each failure. A check is not checked when the session's permissions blocked its command: name the command so the user can run it or allow it.
+
+Get the state directory and config checks from one command, `python3 <skill-dir>/scripts/tune.py caps`, whose `"state"` field reports the directory, whether it exists, and whether it is writable, and whose `warnings` report a broken `cook.json`. Don't expand `$HSTACK_HOME` or list `~/.claude/hstack/` by hand.
 
 - `git` is present, this is a git repo with an `origin`, and `git worktree list` works. Outside a git repo, this line fails and the rest still run.
 - The repo's host, from `origin`, and its CLI installed and signed in: `gh auth status` for GitHub, `glab auth status` for GitLab. Otherwise, whether a matching MCP server is connected.

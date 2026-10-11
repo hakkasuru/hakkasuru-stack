@@ -12,7 +12,7 @@ Check the whole diff before raising the MR. Tiers 2 and 3 only.
 
 Invoke Claude Code's built-in `/code-review` and `/simplify` skills with the Skill tool, pointed at the run's branch. Pass an explicit target when the session isn't inside the worktree.
 
-Fix each finding, or decline it with a stated reason. Declined findings go in the final report.
+Fix each finding, or decline it with a stated reason. Declined findings go in the final report. `/simplify` edits files directly: commit the review fixes as their own commit, through `hermes`, before raise-mr.
 
 ## Smallest diff
 

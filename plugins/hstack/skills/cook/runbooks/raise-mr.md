@@ -16,20 +16,22 @@ Push each branch, bottom of the stack first:
 git push -u origin <branch>
 ```
 
+In a fix round, push the new commits to the existing branch. The open PR or MR picks them up. Don't open another one, and skip Open below.
+
 ## Open
 
-Write the description to a file in the scratchpad first, then open the PR or MR. Stack: each one's base is the branch below it, and the bottom one's base is the default branch.
+Write the title and the description to files in the scratchpad first (`<title-file>`, `<description-file>`), then open the PR or MR. Never put ticket-derived text directly inside a quoted shell argument: a title containing `$(...)` or backticks would run as a command. Stack: each one's base is the branch below it, and the bottom one's base is the default branch.
 
 GitHub:
 
 ```bash
-gh pr create --base <base> --head <branch> --title "<title>" --body-file <description-file>
+gh pr create --base <base> --head <branch> --title "$(cat <title-file>)" --body-file <description-file>
 ```
 
 GitLab:
 
 ```bash
-glab mr create --target-branch <base> --source-branch <branch> --title "<title>" --description "$(cat <description-file>)" --squash-before-merge --yes
+glab mr create --target-branch <base> --source-branch <branch> --title "$(cat <title-file>)" --description "$(cat <description-file>)" --squash-before-merge --yes
 ```
 
 Add `--draft` to either command when the user passed `--draft`. Otherwise the PR or MR opens ready for review.
