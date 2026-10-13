@@ -54,6 +54,36 @@ Use a different pattern for each suggestion so the user gets real variety.
 - "I Gave the Interns Prod Access for 24 Hours"
 - "Every Minute This Meeting Runs, We Delete a Microservice"
 
+### 8. The Open Loop / Unfinished Story
+Start a story and stop before the ending, so the only way to find out is to show up.
+- "We Tried Trunk-Based Development for a Week… We Didn't Expect This"
+- "We Almost Rolled Back the Migration Until This Happened"
+- "I Opened the AWS Bill and…"
+
+### 9. The Contradiction / Challenger
+Push back on something everyone believes, or on a decision the team made.
+- "Everyone Said the Rewrite Wouldn't Work (They Were Right)"
+- "This Is Why Our Sprints Never Finish"
+- "Unpopular Opinion: We Don't Need Another Dashboard"
+
+### 10. The Urgency / Warning
+Make skipping the meeting feel risky. Keep the risk obviously comic, never a real threat (see Where Not to Go).
+- "Before You Merge Another PR, Attend This"
+- "If We Don't Fix Onboarding Now, Disaster Will Happen"
+- "Do NOT Skip This Release Planning"
+
+### 11. The Credibility Lead
+Open with who is talking. Use invitees' real roles or teams; don't invent credentials.
+- "Staff Engineer Explains Why Your Queries Are Slow"
+- "I'm the On-Call Engineer. Do THIS Before Friday's Deploy"
+- "Finance Explains the Cloud Spend Habits Keeping Us Broke"
+
+### 12. The Compressed Value Promise
+Promise a lot of value in very little time. Use the meeting's real duration and real scope.
+- "The Entire Q3 Roadmap in 25 Minutes"
+- "Everything We Learned From 40 Customer Calls in 1 Meeting"
+- "How We Cut Build Times in Half (Full Breakdown)"
+
 ### Seasoning
 Use these sparingly, one or two per title at most:
 - One word in ALL CAPS, not the whole title
